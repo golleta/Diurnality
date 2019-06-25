@@ -169,6 +169,4 @@ diurnality = function(datetime, activity, interval = 1, lat = NULL, lon = NULL, 
 	############
 	return(d.index)
 
-} #FIM DIURNALITY	
-
-
+} #FIM DIURNALITY

@@ -169,11 +169,4 @@ diurnality = function(datetime, activity, interval = 1, lat = NULL, lon = NULL, 
 	############
 	return(d.index)
 
-} #FIM DIURNALITY	
-
-acelerometro = read.csv("acelerometro.txt", sep = "\t")
-acelerometro$data.hora = as.POSIXct(acelerometro$data.hora, format = "%d/%m/%Y %H:%M:%S", tz = "America/Sao_Paulo")
-datetime = acelerometro$data.hora
-activity =  acelerometro$ODBA
-d = diurnality(datetime, activity, sunrise = "07:00", sunset = "18:00")
-names(d)
+} #FIM DIURNALITY
