@@ -171,39 +171,9 @@ diurnality = function(datetime, activity, interval = 1, lat = NULL, lon = NULL, 
 
 } #FIM DIURNALITY	
 
-y = read.csv("roda.txt",sep = " ")
-activity = y$X106
-datetime = as.POSIXct(paste(y$X22.01.2017,y$X00.03.00), format = "%d/%m/%Y %H:%M:%S")
-
 acelerometro = read.csv("acelerometro.txt", sep = "\t")
 acelerometro$data.hora = as.POSIXct(acelerometro$data.hora, format = "%d/%m/%Y %H:%M:%S", tz = "America/Sao_Paulo")
 datetime = acelerometro$data.hora
 activity =  acelerometro$ODBA
-
-datetime = seq(ISOdate(2019,6,1), ISOdate(2019,7,1), "50 min")
-activity = rpois(length(datetime), 5)
-
-
-a = getSunlightTimes(as.Date(datetime),lat = -23.5489, lon = -46.6388, keep = c("sunrise", "sunset"))
-
-
-getSunlightTimes(as.Date(datetime),lat = -23.5489, lon = -46.6388, tz="America/Sao_Paulo", keep = c("sunrise", "sunset"))
-
-as.numeric(a$sunrise)
-as.numeric(b$sunrise)
-
-debug(diurnality)
-diurnality(datetime = datetime, activity = activity, lat = -23.5489, lon = -46.6388)
-diurnality(datetime = datetime, activity = activity, lat = -23.5489, lon = -46.6388, tz="America/Anchorage")
-
-
-diurnality(datetime = datetime, activity = activity, interval = 5, lat = -23.5489, lon = -46.6388, tz="America/Sao_Paulo")
-diurnality(datetime = datetime, activity = activity, interval = 30, lat = -23.5489, lon = -46.6388, tz="America/Sao_Paulo")
-diurnality(datetime = datetime, activity = activity, interval = 2, lat = -28.8, lon = -66.934, tz="America/Argentina/La_Rioja")
-diurnality(datetime = datetime, activity = activity, interval = 5, sunrise = "07:00", sunset = "18:00")
-
-r = as.POSIXct("2018-10-20 00:20:44", tz = "UTC") ; t = as.POSIXct("2018-10-20 00:20:44", tz = "CST6CDT")
-r;t
-as.numeric(r)
-as.numeric(t)
-r == t
+d = diurnality(datetime, activity, sunrise = "07:00", sunset = "18:00")
+names(d)
