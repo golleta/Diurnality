@@ -3,7 +3,7 @@
 # Jefferson Silva
 ###################################
 
-diurnality = function(datetime, activity, interval = 1, lat = NULL, lon = NULL, tz = NULL, sunrise = NULL, sunset = NULL, graph = TRUE){
+diurnality = function(datetime, activity, interval = 1, lat = NULL, lon = NULL, sunrise = NULL, sunset = NULL, graph = TRUE){
 	
 	# checa se pacotes necessários estão instalados
 	if (!require(suncalc)){
@@ -39,9 +39,9 @@ diurnality = function(datetime, activity, interval = 1, lat = NULL, lon = NULL, 
 		stop("Argumentos 'datetime' e 'activity'devem ter o mesmo tamanho.")
 	}
 	
-	#### Devem ser preenchido (sunrise e sunset) ou então (lat, lon e tz)
+	#### Devem ser preenchido (sunrise e sunset) ou então (lat, lon)
 	if(is.null(sunrise) | is.null(sunset)){
-		if(is.null(lat) | is.null(lon) | is.null(tz)){
+		if(is.null(lat) | is.null(lon) ){
 			# Nenhum dos conjuntos de argumentos foi fornecido
 			stop("É necessário fornecer manualmente o valor de nascer e pôr do sol ou as coordenadas do local.")
 		}
@@ -53,7 +53,7 @@ diurnality = function(datetime, activity, interval = 1, lat = NULL, lon = NULL, 
 		}
 	}
 	else{
-		if(is.null(lat) | is.null(lon) | is.null(tz)){
+		if(is.null(lat) | is.null(lon)){
 			# checa se sunrise e sunset estão no formato correto de HH:MM
 			if ( is.na(as.POSIXct(paste(Sys.Date(), sunset), format = "%Y-%m-%d %H:%M")) | is.na(as.POSIXct(paste(Sys.Date(), sunrise), format = "%Y-%m-%d %H:%M"))) {
 				stop("'Sunrise' ou 'Sunset' não estão no formato HH:MM.")
@@ -99,7 +99,7 @@ diurnality = function(datetime, activity, interval = 1, lat = NULL, lon = NULL, 
 		## suncalc::getSunlightTimes, maptools::sunriset e StreamMetabolism::sunrise.set
 		## Em tempo de execuçao suncalc::getSunlightTimes foi mais rápido do que as outras funçoes
 		# cria novo vetor com as datas de nasce e por do sol para cada linha do df
-		sun = getSunlightTimes(as.Date(df$datetime), lat = lat, lon = lon, tz = tz, keep = c("sunrise", "sunset"))
+		sun = getSunlightTimes(as.Date(df$datetime), lat = lat, lon = lon, keep = c("sunrise", "sunset"))
 		# Verifica se df está entre as horas de nascer e por do sol e adiciona a nova coluna 'daylight' ao dataframe.
 		df$daylight = ifelse(test = df$datetime >= sun$sunrise & df$datetime <= sun$sunset, yes = TRUE, no = FALSE)
 	}
@@ -171,37 +171,4 @@ diurnality = function(datetime, activity, interval = 1, lat = NULL, lon = NULL, 
 
 } #FIM DIURNALITY	
 
-y = read.csv("roda.txt",sep = " ")
-activity = y$X106
-datetime = as.POSIXct(paste(y$X22.01.2017,y$X00.03.00), format = "%d/%m/%Y %H:%M:%S")
 
-acelerometro = read.csv("acelerometro.txt", sep = "\t")
-acelerometro$data.hora = as.POSIXct(acelerometro$data.hora, format = "%d/%m/%Y %H:%M:%S", tz = "America/Sao_Paulo")
-datetime = acelerometro$data.hora
-activity =  acelerometro$ODBA
-
-datetime = seq(ISOdate(2019,2,1), ISOdate(2019,7,1), "5 min")
-activity = rpois(length(datetime), 5)
-
-
-a = getSunlightTimes(as.Date(datetime),lat = -23.5489, lon = -46.6388, tz="America/Anchorage", keep = c("sunrise", "sunset"))
-b = getSunlightTimes(as.Date(datetime),lat = -23.5489, lon = -46.6388, tz="America/Sao_Paulo", keep = c("sunrise", "sunset"))
-
-as.numeric(a$sunrise)
-as.numeric(b$sunrise)
-
-debug(diurnality)
-diurnality(datetime = datetime, activity = activity, lat = -23.5489, lon = -46.6388, tz="America/Sao_Paulo")
-diurnality(datetime = datetime, activity = activity, lat = -23.5489, lon = -46.6388, tz="America/Anchorage")
-
-
-diurnality(datetime = datetime, activity = activity, interval = 5, lat = -23.5489, lon = -46.6388, tz="America/Sao_Paulo")
-diurnality(datetime = datetime, activity = activity, interval = 30, lat = -23.5489, lon = -46.6388, tz="America/Sao_Paulo")
-diurnality(datetime = datetime, activity = activity, interval = 2, lat = -28.8, lon = -66.934, tz="America/Argentina/La_Rioja")
-diurnality(datetime = datetime, activity = activity, interval = 5, sunrise = "07:00", sunset = "18:00")
-
-r = as.POSIXct("2018-10-20 00:20:44", tz = "UTC") ; t = as.POSIXct("2018-10-20 00:20:44", tz = "CST6CDT")
-r;t
-as.numeric(r)
-as.numeric(t)
-r == t

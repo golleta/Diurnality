@@ -8,7 +8,7 @@ Description:
 
 Usage:
 
-    diurnality(datetime, activity, interval = 1, lat = NULL, lon = NULL, tz = NULL, sunrise = NULL, sunset = NULL, graph = TRUE)
+    diurnality(datetime, activity, interval = 1, lat = NULL, lon = NULL, sunrise = NULL, sunset = NULL, graph = TRUE)
 
 Arguments:
 
@@ -22,14 +22,11 @@ Arguments:
   
     lon: Longitude em valor numérico para cálculo automático da duração do dia.
   
-    tz: Caracter que representa a timezone do local de coleta de acordo com a base de dados de timezones. Mais em:  https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-  
     sunrise: Caracter em formato HH:MM. Horário de nascer do sol para cálculo da duração do dia. Caso 'sunrise' e 'sunset' sejam fornecidos a duração do dia se manterá a mesma ao longo do tempo.
   
     sunset:  Caracter em formato HH:MM. Horário de pôr-do-sol para cálculo da duração do dia. Caso 'sunrise' e 'sunset' sejam fornecidos a duração do dia se manterá a mesma ao longo do tempo.
   
     graph: Logical. TRUE para exibição do gráfico. FALSE para não exibir o gráfico. 
-  
 
 Details:
 
@@ -61,14 +58,15 @@ See Also:
 
 Examples:
 
-    datetime = seq(ISOdate(2018,7,1), ISOdate(2019,7,1), "5 min")
-    activity = rpois(length(datetime), 5)
+    datetime = seq(ISOdate(2018,7,1), ISOdate(2019,7,1), "5 min") # Gera dados de Julho/2018 até Julho/2019 com intevalos de 5 minutos
+    activity = rpois(length(datetime), 5) # Gera dados de atividade 
     
-    diurnality(datetime = datetime, activity = activity, lat = -23.5489, lon = -46.6388, tz="America/Sao_Paulo")
-    diurnality(datetime = datetime, activity = activity, interval = 5, lat = -23.5489, lon = -46.6388, tz="America/Sao_Paulo")
-    diurnality(datetime = datetime, activity = activity, interval = 30, lat = -23.5489, lon = -46.6388, tz="America/Sao_Paulo")
-    diurnality(datetime = datetime, activity = activity, interval = 2, lat = -28.8, lon = -66.934, tz="America/Argentina/La_Rioja")
-    diurnality(datetime = datetime, activity = activity, interval = 5, sunrise = "07:00", sunset = "18:00")
+    diurnality(datetime = datetime, activity = activity, lat = -23.5489, lon = -46.6388) # Coordenadas de SP
+    diurnality(datetime = datetime, activity = activity, interval = 5, lat = -23.5489, lon = -46.6388) # Coordenadas de SP, calculado a cada 5 dias
+    diurnality(datetime = datetime, activity = activity, interval = 30, lat = -23.5489, lon = -46.6388) # Coordenadas de SP, calculado a cada 30 dias 
+    diurnality(datetime = datetime, activity = activity, interval = 2, lat = -28.8, lon = -66.934) # Coordenadas de La Rioja, Argentina. Calculado a cada 2 dias
+    diurnality(datetime = datetime, activity = activity, interval = 5, sunrise = "07:00", sunset = "18:00") # Horário dos crespuculos se mantém constante, calculado a cada 5 dias
+
 
 
 
