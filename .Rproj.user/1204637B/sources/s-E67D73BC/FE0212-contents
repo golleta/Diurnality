@@ -1,0 +1,47 @@
+rm(list=ls())
+setwd("C:/Users/Milene/Documents/Projetos/Cronobio/Experimentos/2016semestre1/An?lises R/Aceler?metro")
+setwd("C:/Users/Milene/Documents/Projetos/CRILAR V?deos Camera/Videos da Tamiris/Carbon com roda/Filmagens tucos")
+dir()
+dados.brutos<-read.table(file="Tuco-05 Rey_2 - Grupo 4.csv", sep="\t", header=FALSE, as.is=TRUE)
+head(dados.brutos)
+####
+
+# Filter multiplica a sequencia dada e soma os resultados
+# no exmplo da função ele multiplca rtes valores por 1 e soma esses resultados
+mav <- function(x,n=5){filter(x,rep(1/n,n), sides=2)}
+
+
+
+
+mmx<-as.numeric(mav(dados.brutos[,2],n=5))
+colx<-dados.brutos[,2]-mmx
+
+mmy<-as.numeric(mav(dados.brutos[,3],n=5))
+coly<-dados.brutos[,3]-mmy
+
+mmz<-as.numeric(mav(dados.brutos[,4],n=5))
+colz<-dados.brutos[,4]-mmz
+
+#Vetor resultante como nova coluna de cada parte dos dados
+vetresult<-(colx^2+coly^2+colz^2)^0.5
+
+qplot(vetresult)
+
+#Normaliza??o do vetor resultante
+#mn1<-mean(vetresult)
+#sd1<-sd(vetresult)
+#normvet<-(vetresult-mn1)/sd1
+
+#M?dia por 1 minutos
+seq1<-seq(from=1, to=length(vetresult), by=300)
+seq2<-seq(from=300, to=length(vetresult), by=300)
+media.minuto<- rep(NA, times=length(seq2))
+
+for(i in 1:(length(seq2)))
+{
+media.minuto[i]<-mean(vetresult[seq1[i]:seq2[i]])
+}
+
+dados.temps<-data.frame("data.hora"=dados.brutos$V1[seq1[1:(length(seq1)-1)]],media.minuto)
+write.table(x=dados.temps,file="Enyadadostemps.txt", sep="\t", quote=FALSE, row.name=FALSE)
+

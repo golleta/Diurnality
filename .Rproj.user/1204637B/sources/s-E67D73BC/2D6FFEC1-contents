@@ -1,0 +1,15 @@
+acelerometro = read.csv("acelerometro.txt", sep = "\t")
+acelerometro$data.hora = as.POSIXct(strptime(acelerometro$data.hora, format = "%d/%m/%Y %H:%M:%S"))
+head(acelerometro)
+str(acelerometro)
+
+
+acelerometro$data.hora < as.POSIXlt("13:00:30", format = "%H:%M:%S")
+
+
+diurnality = function(datetime, activity, interval = 1, sunrise = NULL, sunset = NULL){
+
+		
+}
+diurnality(datetime = acelerometro$data.hora, activity = acelerometro$ODBA, interval = 1,lat = 23.5 ,lon = -46.6,tz = "CET")
+
