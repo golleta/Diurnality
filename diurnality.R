@@ -2,8 +2,10 @@
 # Calculo do indice de diunalidade
 # Jefferson Silva
 ###################################
-diurnality = function(.data, timestamp = "timestamp", activity = "odba", interval = 1, lat = -28.8, lon = -66.95, sunrise = NULL, sunset = NULL, graph = TRUE){
-	require(lubridate)
+diurnality = function(.data, timestamp = "timestamp", activity = "odba", interval = 0, lat = -28.8, lon = -66.95, sunrise = NULL, sunset = NULL){
+	
+  ## Pacotes necessários
+  require(lubridate)
 	# checa se pacotes necessários estão instalados
 	if (!require(maptools)){
 		# Instala pacotes caso não estejam instalados
@@ -15,10 +17,9 @@ diurnality = function(.data, timestamp = "timestamp", activity = "odba", interva
 		require(maptools)
 	}
 	
-	#####################
-	# Verifica argumentos
-	#####################
-	
+	######################
+	## Verifica argumentos
+	######################
 	#### timestamp deve ser do tipo POSIXct para evitar erros futuros
 	if(!inherits(.data[[timestamp]], "POSIXct")){
 		# caso não seja a função é parada
@@ -26,7 +27,7 @@ diurnality = function(.data, timestamp = "timestamp", activity = "odba", interva
 	}
 
 	# Intervalo para calculo do indice deve ser > 1
-	if(interval<=0){
+	if(interval<0){
 		stop("Argumento 'interval' deve ser >= 1")
 	}
 	
@@ -71,11 +72,12 @@ diurnality = function(.data, timestamp = "timestamp", activity = "odba", interva
 	}
 
 	
-	####################
-	## calcula indice ##
-	####################
-	
-	# Usar coordenadas para calculo da duração do dia?
+	#######################
+	## calculo do indice ##
+	#######################
+  
+	## Usar coordenadas para calculo da duração do dia?
+  ## Se as coordenas forem fornecidas nos argumentos o calcula da duração do dia é feito automaticamente usando o pacote maptools
 	if (coord == FALSE){
 		## Esse bloco de código cria uma nova coluna no dataframe
 		## A nova coluna 'daylight' indica que o registro correspondente aquela linha foi realizado durante o dia
@@ -95,30 +97,48 @@ diurnality = function(.data, timestamp = "timestamp", activity = "odba", interva
 
 		# Verifica se .data está entre as horas de nascer e por do sol e adiciona a nova coluna 'daylight' ao dataframe.
 		.data$daylight = ifelse(test = .data[[timestamp]] >= dawn & .data[[timestamp]] <= dusk, yes = TRUE, no = FALSE)
-
 	}
 	
-	# Cria um fator que corresponde ao intervalo de cada uma das linhas do .data.
-	cuts = cut(x = .data[[timestamp]], breaks = paste(as.character(interval),"days"))
-	#  Cria uma lista dividida por intervalos
-	timestamp.list = split(x = .data, f = cuts)
-	# Separa atividade que acontece durante dia ou noite e calcula o indice de diurnalidade (Hoogenboom, 1984)
-	
-	d.index = sapply(timestamp.list, 
-					 function(x){
-					 	# indexa valores de atividade que acontecem durante o dia
-					 	actv.day = x[[activity]][x$daylight]
-					 	# indexa valores de atividade que acontecem durante a noite
-					 	actv.night = x[[activity]][!x$daylight]
-					 	# somatória da atividade diurna
-					 	actv.day = sum(actv.day)
-					 	# somatória da atividade noturna
-					 	actv.night = sum(actv.night)
-					 	# calculo do indice de diurnalidade (Hoogenboom, 1984)
-					 	d = (actv.day - actv.night)/(actv.day + actv.night)
-					 }
-	)
-	d.index = data.frame(date = names(d.index), diurnality = d.index, row.names = NULL)
+  ## Se o intervalo é maior ou igual a 0 o indice é calculado para toda atividade do dataset fornecido
+  ## Caso o intervalo seja maior ou igual a 1 o indice é calculado por grupo de dias.
+  if (interval == 0){
+    # indexa valores de atividade que acontecem durante o dia
+    actv.day = .data[[activity]][.data$daylight]
+    # indexa valores de atividade que acontecem durante a noite
+    actv.night = .data[[activity]][!.data$daylight]
+    # somatória da atividade diurna
+    actv.day = sum(actv.day)
+    # somatória da atividade noturna
+    actv.night = sum(actv.night)
+    # calculo do indice de diurnalidade (Hoogenboom, 1984)
+    d.index= (actv.day - actv.night)/(actv.day + actv.night)
+  }
+  else{
+    
+    # Cria um fator que corresponde ao intervalo de cada uma das linhas do .data.
+    cuts = cut(x = .data[[timestamp]], breaks = paste(as.character(interval),"days"))
+    #  Cria uma lista dividida por intervalos
+    data.list = split(x = .data, f = cuts)
+    # Separa atividade que acontece durante dia ou noite e calcula o indice de diurnalidade (Hoogenboom, 1984)
+    
+    d.index = sapply(data.list, 
+                     function(x){
+                       # indexa valores de atividade que acontecem durante o dia
+                       actv.day = x[[activity]][x$daylight]
+                       # indexa valores de atividade que acontecem durante a noite
+                       actv.night = x[[activity]][!x$daylight]
+                       # somatória da atividade diurna
+                       actv.day = sum(actv.day)
+                       # somatória da atividade noturna
+                       actv.night = sum(actv.night)
+                       # calculo do indice de diurnalidade (Hoogenboom, 1984)
+                       d = (actv.day - actv.night)/(actv.day + actv.night)
+                       # retorna d
+                       return(d)
+                     })
+    
+    d.index = data.frame(date = names(d.index), diurnality = d.index, row.names = NULL)
+  }
 
 	############
 	## return ##
