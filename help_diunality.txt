@@ -30,7 +30,7 @@ Arguments:
 
 Details:
 
-    O índice de diurnalidade é calculado de acordo com a atividade exibida durante o dia ou durante a noite. Em casos onde a coleta de dados se extenda por um longo período de tempo, a duração do dia pode ser calculada automaticamente caso os argumentos 'lat, 'lon' e 'tz' sejam fornecidos. Caso a coleta de dados seja feita em ambiente de laboratório com luminosidade controlada, a duração do dia pode ser fornecida manualmente usando os argumentos 'sunrise' e 'sunset'. Somente um desses conjuntos de argumentos deve ser fornecido.
+    O índice de diurnalidade é calculado de acordo com a atividade exibida durante o dia ou durante a noite. Em casos onde a coleta de dados se extenda por um longo período de tempo, a duração do dia pode ser calculada automaticamente caso os argumentos 'lat, 'lon' sejam fornecidos. Caso a coleta de dados seja feita em ambiente de laboratório com luminosidade controlada, a duração do dia pode ser fornecida manualmente usando os argumentos 'sunrise' e 'sunset'. Somente um desses conjuntos de argumentos deve ser fornecido.
 
 Value:
 
