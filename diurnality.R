@@ -3,7 +3,7 @@
 # Jefferson Silva
 ###################################
 
-diurnality = function(datetime, activity, interval = 1, lat = NULL, lon = NULL, sunrise = NULL, sunset = NULL, graph = TRUE){
+diurnality = function(datetime, activity, interval = 0, lat = -28.8, lon = -66.95, sunrise = NULL, sunset = NULL, graph = TRUE){
 	
 	# checa se pacotes necessários estão instalados
 	if (!require(suncalc)){
@@ -25,11 +25,11 @@ diurnality = function(datetime, activity, interval = 1, lat = NULL, lon = NULL, 
 		# caso não seja a função é parada
 		stop("Argumento 'datetime' deve ser da classe POSIXct")
 	}
-
+	
 	# Intervalo para calculo do indice deve ser > 1
-	if(interval<=0){
-		stop("Argumento 'interval' deve ser >= 1")
-	}
+	#if(interval<=0){
+	#  stop("Argumento 'interval' deve ser >= 1")
+	#}
 	
 	if(!is.numeric(activity)){
 		stop("Argumento 'activity' deve ser numérico.")
@@ -70,7 +70,7 @@ diurnality = function(datetime, activity, interval = 1, lat = NULL, lon = NULL, 
 			stop("Apenas um conjunto de argumentos deve ser fornecido entre horário de nascer e pôr do sol e as coordenadas.")
 		}
 	}
-
+	
 	
 	####################
 	## calcula indice ##
@@ -80,7 +80,7 @@ diurnality = function(datetime, activity, interval = 1, lat = NULL, lon = NULL, 
 	df = data.frame(datetime, activity)
 	# omite NAs
 	df = na.omit(df)
-
+	
 	# Usar coordenadas para calculo da duração do dia?
 	if (coord == FALSE){
 		## Esse bloco de código cria uma nova coluna no dataframe
@@ -92,7 +92,7 @@ diurnality = function(datetime, activity, interval = 1, lat = NULL, lon = NULL, 
 		sunset = paste(dates, sunset)
 		# Verifica se o registro foi feito entre as horas de nascer e por do sol e adiciona a nova coluna 'daylight' ao dataframe
 		df$daylight = ifelse(test = df$datetime >= sunrise & df$datetime <= sunset, yes = TRUE, no = FALSE)
-
+		
 	}	
 	else{
 		## Para conseguir dados de nascer e por do sol, temos três opções em três pacotes diferentes: 
@@ -104,28 +104,44 @@ diurnality = function(datetime, activity, interval = 1, lat = NULL, lon = NULL, 
 		df$daylight = ifelse(test = df$datetime >= sun$sunrise & df$datetime <= sun$sunset, yes = TRUE, no = FALSE)
 	}
 	
-	# Cria uma string de acordo com o intervalo de dias fornecido nos argumentos
-	b = paste(as.character(interval),"days")
-	# Cria um fator que corresponde ao intervalo de cada uma das linhas do df.
-	cuts = cut(x = df$datetime, breaks = b)
-	#  Cria uma lista dividida por intervalos
-	datetime.list = split(x = df, f = cuts)
-	# Separa atividade que acontece durante dia ou noite e calcula o indice de diurnalidade (Hoogenboom, 1984)
-	d.index = sapply(datetime.list, 
-					 function(x){
-					 	# indexa valores de atividade que acontecem durante o dia
-					 	actv.day = x$activity[x$daylight]
-					 	# indexa valores de atividade que acontecem durante a noite
-					 	actv.night = x$activity[!x$daylight]
-					 	# somatória da atividade diurna
-					 	actv.day = sum(actv.day)
-					 	# somatória da atividade noturna
-					 	actv.night = sum(actv.night)
-					 	# calculo do indice de diurnalidade (Hoogenboom, 1984)
-					 	d = (actv.day - actv.night)/(actv.day + actv.night)
-					 }
-	)
-
+	
+	if (interval == 0){
+		# indexa valores de atividade que acontecem durante o dia
+		actv.day = df$activity[df$daylight]
+		# indexa valores de atividade que acontecem durante a noite
+		actv.night = df$activity[!df$daylight]
+		# somatória da atividade diurna
+		actv.day = sum(actv.day)
+		# somatória da atividade noturna
+		actv.night = sum(actv.night)
+		# calculo do indice de diurnalidade (Hoogenboom, 1984)
+		d.index = (actv.day - actv.night)/(actv.day + actv.night)
+	}
+	else{
+		# Cria uma string de acordo com o intervalo de dias fornecido nos argumentos
+		b = paste(as.character(interval),"days")
+		# Cria um fator que corresponde ao intervalo de cada uma das linhas do df.
+		cuts = cut(x = df$datetime, breaks = b)
+		#  Cria uma lista dividida por intervalos
+		datetime.list = split(x = df, f = cuts)
+		# Separa atividade que acontece durante dia ou noite e calcula o indice de diurnalidade (Hoogenboom, 1984)
+		d.index = sapply(datetime.list, 
+						 function(x){
+						 	# indexa valores de atividade que acontecem durante o dia
+						 	actv.day = x$activity[x$daylight]
+						 	# indexa valores de atividade que acontecem durante a noite
+						 	actv.night = x$activity[!x$daylight]
+						 	# somatória da atividade diurna
+						 	actv.day = sum(actv.day)
+						 	# somatória da atividade noturna
+						 	actv.night = sum(actv.night)
+						 	# calculo do indice de diurnalidade (Hoogenboom, 1984)
+						 	d = (actv.day - actv.night)/(actv.day + actv.night)
+						 })
+		d.index = data.frame(date = names(d.index), diurnality = d.index, row.names = NULL)
+	}
+	
+	
 	##########
 	## plot ##
 	##########
@@ -163,10 +179,10 @@ diurnality = function(datetime, activity, interval = 1, lat = NULL, lon = NULL, 
 		# adiciona linha horizontal
 		abline(h = 0, lty = 3, col = rgb(0,0,0,0.5))
 	}
-
+	
 	############
 	## return ##
 	############
 	return(d.index)
-
+	
 } #FIM DIURNALITY
