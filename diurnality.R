@@ -3,7 +3,7 @@
 # Jefferson Silva
 ###################################
 
-diurnality = function(datetime, activity, interval = 0, lat = -28.8, lon = -66.95, sunrise = NULL, sunset = NULL, graph = TRUE){
+diurnality = function(timestamp, activity, interval = 0, lat = -28.8, lon = -66.95, sunrise = NULL, sunset = NULL, graph = FALSE){
 	
 	# checa se pacotes necessários estão instalados
 	if (!require(suncalc)){
@@ -21,22 +21,22 @@ diurnality = function(datetime, activity, interval = 0, lat = -28.8, lon = -66.9
 	#####################
 	
 	#### Datetime deve ser do tipo POSIXct para evitar erros futuros
-	if(!inherits(datetime, "POSIXct")){
+	if(!inherits(timestamp, "POSIXct")){
 		# caso não seja a função é parada
-		stop("Argumento 'datetime' deve ser da classe POSIXct")
+		stop("Argumento 'timestamp' deve ser da classe POSIXct")
 	}
 	
 	# Intervalo para calculo do indice deve ser > 1
-	#if(interval<=0){
-	#  stop("Argumento 'interval' deve ser >= 1")
-	#}
+	if(interval<=0){
+	  stop("Argumento 'interval' deve ser >= 1")
+	}
 	
 	if(!is.numeric(activity)){
 		stop("Argumento 'activity' deve ser numérico.")
 	}
 	
-	if(length(activity) != length(datetime)){
-		stop("Argumentos 'datetime' e 'activity'devem ter o mesmo tamanho.")
+	if(length(activity) != length(timestamp)){
+		stop("Argumentos 'timestamp' e 'activity'devem ter o mesmo tamanho.")
 	}
 	
 	#### Devem ser preenchido (sunrise e sunset) ou então (lat, lon)
@@ -77,7 +77,7 @@ diurnality = function(datetime, activity, interval = 0, lat = -28.8, lon = -66.9
 	####################
 	
 	# Combina dados de entrada em um dataframe, o que facilita a manipulação.
-	df = data.frame(datetime, activity)
+	df = data.frame(timestamp, activity)
 	# omite NAs
 	df = na.omit(df)
 	
@@ -86,12 +86,12 @@ diurnality = function(datetime, activity, interval = 0, lat = -28.8, lon = -66.9
 		## Esse bloco de código cria uma nova coluna no dataframe
 		## A nova coluna 'daylight' indica que o registro correspondente aquela linha foi realizado durante o dia
 		# Para cada linha extrai somente o valor da data, descartando as horas
-		dates = as.Date(df$datetime)
+		dates = as.Date(df$timestamp)
 		# concatena a data correspondete daquela linha com o horário de nascer e pôr do sol
 		sunrise = paste(dates, sunrise)
 		sunset = paste(dates, sunset)
 		# Verifica se o registro foi feito entre as horas de nascer e por do sol e adiciona a nova coluna 'daylight' ao dataframe
-		df$daylight = ifelse(test = df$datetime >= sunrise & df$datetime <= sunset, yes = TRUE, no = FALSE)
+		df$daylight = ifelse(test = df$timestamp >= sunrise & df$timestamp <= sunset, yes = TRUE, no = FALSE)
 		
 	}	
 	else{
@@ -99,9 +99,9 @@ diurnality = function(datetime, activity, interval = 0, lat = -28.8, lon = -66.9
 		## suncalc::getSunlightTimes, maptools::sunriset e StreamMetabolism::sunrise.set
 		## Em tempo de execuçao suncalc::getSunlightTimes foi mais rápido do que as outras funçoes
 		# cria novo vetor com as datas de nasce e por do sol para cada linha do df
-		sun = getSunlightTimes(as.Date(df$datetime), lat = lat, lon = lon, keep = c("sunrise", "sunset"))
+		sun = getSunlightTimes(as.Date(df$timestamp), lat = lat, lon = lon, keep = c("sunrise", "sunset"))
 		# Verifica se df está entre as horas de nascer e por do sol e adiciona a nova coluna 'daylight' ao dataframe.
-		df$daylight = ifelse(test = df$datetime >= sun$sunrise & df$datetime <= sun$sunset, yes = TRUE, no = FALSE)
+		df$daylight = ifelse(test = df$timestamp >= sun$sunrise & df$timestamp <= sun$sunset, yes = TRUE, no = FALSE)
 	}
 	
 	
@@ -121,11 +121,11 @@ diurnality = function(datetime, activity, interval = 0, lat = -28.8, lon = -66.9
 		# Cria uma string de acordo com o intervalo de dias fornecido nos argumentos
 		b = paste(as.character(interval),"days")
 		# Cria um fator que corresponde ao intervalo de cada uma das linhas do df.
-		cuts = cut(x = df$datetime, breaks = b)
+		cuts = cut(x = df$timestamp, breaks = b)
 		#  Cria uma lista dividida por intervalos
-		datetime.list = split(x = df, f = cuts)
+		df.list = split(x = df, f = cuts)
 		# Separa atividade que acontece durante dia ou noite e calcula o indice de diurnalidade (Hoogenboom, 1984)
-		d.index = sapply(datetime.list, 
+		d.index = sapply(df.list, 
 						 function(x){
 						 	# indexa valores de atividade que acontecem durante o dia
 						 	actv.day = x$activity[x$daylight]
