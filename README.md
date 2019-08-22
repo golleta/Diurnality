@@ -15,20 +15,20 @@ Usage:
 Arguments:
 
     datetime: Um vetor da classe POSIXct que corresponde a data e o horário das coletas de dados.
-  
+
     activity: Um vetor numérico que corresponde a atividade exibida em cada ponto de coleta de dados.
-  
+
     interval: Número >= 1 que corresponde ao intervalo no qual o indíce de diurnalidade devera ser calculado. Como padrão o índice é calculado diariamente.
-  
+
     lat: Latitude em valor numérico para cálculo automático da duração do dia.
-  
+
     lon: Longitude em valor numérico para cálculo automático da duração do dia.
-  
+
     sunrise: Caracter em formato HH:MM. Horário de nascer do sol para cálculo da duração do dia. Caso 'sunrise' e 'sunset' sejam fornecidos a duração do dia se manterá a mesma ao longo do tempo.
-  
+
     sunset:  Caracter em formato HH:MM. Horário de pôr-do-sol para cálculo da duração do dia. Caso 'sunrise' e 'sunset' sejam fornecidos a duração do dia se manterá a mesma ao longo do tempo.
-  
-    graph: Logical. TRUE para exibição do gráfico. FALSE para não exibir o gráfico. 
+
+    graph: Logical. TRUE para exibição do gráfico. FALSE para não exibir o gráfico.
 
 Details:
 
@@ -43,7 +43,7 @@ Value:
 Warning:
 
     Se algum dos argumentos não for inserido corretamente a função não será executada, retornando uma mensagem de erro para identificação do problema.
-     
+
 Author(s):
 
     Jefferson Silvério
@@ -60,11 +60,22 @@ See Also:
 
 Examples:
 
+    # generate dummy data
     datetime = seq(ISOdate(2018,7,1), ISOdate(2019,7,1), "5 min") # Gera dados de Julho/2018 até Julho/2019 com intevalos de 5 minutos
-    activity = rpois(length(datetime), 5) # Gera dados de atividade 
-    
+    activity = rpois(length(datetime), 5) # Gera dados de atividade
+
+    # calculate indices
     diurnality(datetime = datetime, activity = activity, lat = -23.5489, lon = -46.6388) # Coordenadas de SP
     diurnality(datetime = datetime, activity = activity, interval = 5, lat = -23.5489, lon = -46.6388) # Coordenadas de SP, calculado a cada 5 dias
-    diurnality(datetime = datetime, activity = activity, interval = 30, lat = -23.5489, lon = -46.6388) # Coordenadas de SP, calculado a cada 30 dias 
+    diurnality(datetime = datetime, activity = activity, interval = 30, lat = -23.5489, lon = -46.6388) # Coordenadas de SP, calculado a cada 30 dias
     diurnality(datetime = datetime, activity = activity, interval = 2, lat = -28.8, lon = -66.934) # Coordenadas de La Rioja, Argentina. Calculado a cada 2 dias
     diurnality(datetime = datetime, activity = activity, interval = 5, sunrise = "07:00", sunset = "18:00") # Horário dos crespuculos se mantém constante, calculado a cada 5 dias
+
+    # dplyr Examples
+    big %>%
+      group_by(id) %>%
+      do(diurnality = diurnality(datetime = .$timestamp, activity = .$odba, interval = 5))
+
+    big %>%
+        group_by(id) %>%
+        summarize(diurnality = diurnality(datetime = .$timestamp, activity = .$odba))
