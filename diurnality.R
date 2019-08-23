@@ -3,7 +3,7 @@
 # Jefferson Silva
 ###################################
 
-diurnality = function(datetime, activity, interval = 0, lat = -28.8, lon = -66.95, sunrise = NULL, sunset = NULL, graph = FALSE){
+diurnality = function(datetime, activity, interval = 0, lat = NULL, lon = NULL, sunrise = NULL, sunset = NULL, graph = FALSE){
 	
 	# checa se pacotes necessários estão instalados
 	require(lubridate)
