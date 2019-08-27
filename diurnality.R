@@ -48,7 +48,7 @@ diurnality = function(datetime, activity, interval = 0, lat = NULL, lon = NULL, 
 		}
 		else{
 			# caso apenas lat lon sejam fornecidas
-			cat(">>> A duração do dia será automaticamente calculada usando as coordenadas fornecidas.\n")
+			warning(">>> A duração do dia será automaticamente calculada usando as coordenadas fornecidas.\n")
 			# atrbui TRUE para uma variavel indicadora, o que significa que a duração do dia seá calculada usando o pacote suncalc
 			coord = TRUE
 		}
@@ -61,7 +61,7 @@ diurnality = function(datetime, activity, interval = 0, lat = NULL, lon = NULL, 
 			}
 			else{
 				# caso apenas sunrise e sunset sejam fornecidos
-				cat(">>> A duração do dia será feita com base no horário de nascer e pôr do sol fornecidos.")
+				warning(">>> A duração do dia será feita com base no horário de nascer e pôr do sol fornecidos.")
 			}
 			# atrbui FALSE, indicando que será usado os valores de sunrise e sunset fornecidos pelo usuário
 			coord = FALSE
