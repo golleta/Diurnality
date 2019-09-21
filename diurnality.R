@@ -3,7 +3,7 @@
 # Jefferson Silva
 ###################################
 
-diurnality = function(datetime, activity, interval = 0, lat = NULL, lon = NULL, sunrise = NULL, sunset = NULL, graph = FALSE){
+diurnality = function(datetime, activity, interval = 0, lat = NULL, lon = NULL, sunrise = NULL, sunset = NULL){
 	
 	# checa se pacotes necessários estão instalados
 	require(lubridate)
@@ -109,7 +109,7 @@ diurnality = function(datetime, activity, interval = 0, lat = NULL, lon = NULL, 
 		df$daylight = ifelse(test = df$datetime  >= dawn & df$datetime  <= dusk, yes = TRUE, no = FALSE)
 	}
 	
-	## Se o intervalo é maior ou igual a 0 o indice é calculado para toda atividade do dataset fornecido
+	## Se o intervalo é igual a 0 o indice é calculado para toda atividade do dataset fornecido
 	## Caso o intervalo seja maior ou igual a 1 o indice é calculado por grupo de dias
 	if (interval == 0){
 		# indexa valores de atividade que acontecem durante o dia
@@ -147,49 +147,5 @@ diurnality = function(datetime, activity, interval = 0, lat = NULL, lon = NULL, 
 						 })
 		d.index = data.frame(date = names(d.index), diurnality = d.index, row.names = NULL)
 	}
-	
-	
-	##########
-	## plot ##
-	##########
-	if(graph){
-		# Prepara variaveis para criar retangulo e label do eixo X
-		n = length(d.index)
-		date.axis = strptime(names(d.index),"%Y-%m-%d")
-		
-		# Define como exibir as legendas
-		if(interval >= 30){
-			# Para intervalos maiores do que 30 dias exibe o nome do mês e o ano.
-			date.axis = format(date.axis, "%b\n%Y")
-		}
-		else{
-			# Para intervalos menores do que 30 dias exibe dia e nome do mês.
-			date.axis = format(date.axis, "%d\n%b")
-		}
-		
-		# prepara paramentros gráficos
-		par(pch=16,  tcl=-0.3,  bty="l", cex.axis = 0.9, las = 1, cex.lab=1, mar=c(4,4,2,2))
-		# plota pontos
-		plot(d.index, 
-			 main = "", 
-			 xlab = "",
-			 xaxt = "n",
-			 ylab = "Diurnality Index",
-			 ylim = c(-1,1)
-		)
-		# adiciona eixo X
-		axis(1, at=1:n, labels=date.axis, mgp = c(3, 1.5, 0))
-		# adiciona retangulo cinza na parte noturna do indice
-		rect(xleft = c(-1,-1), ybottom = c(-2,-2), xright = c(n+2,n+2), ytop = c(0,0), col = rgb(0,0,0,0.009), lty=3, border = NA)
-		# conecta pontos
-		lines(x = 1:n, y = d.index, col = rgb(0,0,0,0.2), type = "b")
-		# adiciona linha horizontal
-		abline(h = 0, lty = 3, col = rgb(0,0,0,0.5))
-	}
-	
-	############
-	## return ##
-	############
-	return(d.index)
 	
 } #FIM DIURNALITY
