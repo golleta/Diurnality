@@ -9,6 +9,7 @@ big$id = as.factor(big$id) # id é convertido para fator
 
 big %>% 
     group_by(id, sex) %>% 
-    summarise(diurnality = diurnality(datetime = timestamp, activity = odba, interval = 0, lat = -28.8, lon = -66.95))
+    summarise(diurnality = diurnality(datetime = timestamp, activity = odba, interval = 0, lat = -28.8, lon = -66.95, mav.window = 0, as.percentage = FALSE))
 
-
+debug(diurnality)
+diurnality(datetime = big.subset$timestamp, activity = big.subset$odba, interval = 0, lat = -28.8, lon = -66.95, as.percentage = TRUE )

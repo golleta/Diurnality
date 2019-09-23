@@ -3,10 +3,12 @@
 # Jefferson Silva
 ###################################
 
-diurnality = function(datetime, activity, interval = 0, lat = NULL, lon = NULL, sunrise = NULL, sunset = NULL){
+diurnality = function(datetime, activity, lat = NULL, lon = NULL, sunrise = NULL, sunset = NULL, mav.window = 0, interval = 0, as.percentage = FALSE){
 	
 	# checa se pacotes necessários estão instalados
 	require(lubridate)
+    require(dplyr)
+    
 	# checa se pacotes necessários estão instalados
 	if (!require(maptools)){
 		# Instala pacotes caso não estejam instalados
@@ -47,8 +49,6 @@ diurnality = function(datetime, activity, interval = 0, lat = NULL, lon = NULL, 
 			stop("É necessário fornecer manualmente o valor de nascer e pôr do sol ou as coordenadas do local.")
 		}
 		else{
-			# caso apenas lat lon sejam fornecidas
-			warning(">>> A duração do dia será automaticamente calculada usando as coordenadas fornecidas.\n")
 			# atrbui TRUE para uma variavel indicadora, o que significa que a duração do dia seá calculada usando o pacote suncalc
 			coord = TRUE
 		}
@@ -58,10 +58,6 @@ diurnality = function(datetime, activity, interval = 0, lat = NULL, lon = NULL, 
 			# checa se sunrise e sunset estão no formato correto de HH:MM
 			if ( is.na(as.POSIXct(paste(Sys.Date(), sunset), format = "%Y-%m-%d %H:%M")) | is.na(as.POSIXct(paste(Sys.Date(), sunrise), format = "%Y-%m-%d %H:%M"))) {
 				stop("'Sunrise' ou 'Sunset' não estão no formato HH:MM.")
-			}
-			else{
-				# caso apenas sunrise e sunset sejam fornecidos
-				warning(">>> A duração do dia será feita com base no horário de nascer e pôr do sol fornecidos.")
 			}
 			# atrbui FALSE, indicando que será usado os valores de sunrise e sunset fornecidos pelo usuário
 			coord = FALSE
@@ -79,6 +75,14 @@ diurnality = function(datetime, activity, interval = 0, lat = NULL, lon = NULL, 
 	
 	# Combina dados de entrada em um dataframe, o que facilita a manipulação.
 	df = data.frame(datetime, activity)
+	
+	# smooth data
+	# calcula média móvel usando a função do pacote data.table
+	if (mav.window > 0){
+	    require(data.table)
+        df$activity = frollmean(df$activity, n = mav.window, align = "center")
+	}
+	
 	# omite NAs
 	df = na.omit(df)
 	
@@ -112,19 +116,33 @@ diurnality = function(datetime, activity, interval = 0, lat = NULL, lon = NULL, 
 	## Se o intervalo é igual a 0 o indice é calculado para toda atividade do dataset fornecido
 	## Caso o intervalo seja maior ou igual a 1 o indice é calculado por grupo de dias
 	if (interval == 0){
+	    # calcula o valor de atividade médio do animal
+	    actv.mean = mean(df$activity)
+        
+	    # Checa valor da atividade conta média e retorna um vetor lógico. TRUE = com atividade.
+	    df$actv.logical = ifelse(test = df$activity >= actv.mean, yes = TRUE, no = FALSE)
+	    
 		# indexa valores de atividade que acontecem durante o dia
-		actv.day = df$activity[df$daylight]
+		actv.day = df$actv.logical[df$daylight]
 		# indexa valores de atividade que acontecem durante a noite
-		actv.night = df$activity[!df$daylight]
+		actv.night = df$actv.logical[!df$daylight]
+		
 		# somatória da atividade diurna
 		actv.day = sum(actv.day)
 		# somatória da atividade noturna
 		actv.night = sum(actv.night)
-		# calculo do indice de diurnalidade (Hoogenboom, 1984)
-		d.index = (actv.day - actv.night)/(actv.day + actv.night)
+		
+		# Calculo do Indice de Diurnalidade
+		if (as.percentage == FALSE){
+		    # calculo do indice de diurnalidade (Hoogenboom, 1984)
+		    d.index = (actv.day - actv.night)/(actv.day + actv.night)
+		}else{
+		    # Indice como porcentagem
+		    d.index = actv.day / (actv.day + actv.night)
+		}
 	}
 	else{
-		# Cria uma string de acordo com o intervalo de dias fornecido nos argumentos
+		# Cria uma string de acord o com o intervalo de dias fornecido nos argumentos
 		b = paste(as.character(interval),"days")
 		# Cria um fator que corresponde ao intervalo de cada uma das linhas do df.
 		cuts = cut(x = df$datetime, breaks = b)
@@ -133,19 +151,35 @@ diurnality = function(datetime, activity, interval = 0, lat = NULL, lon = NULL, 
 		# Separa atividade que acontece durante dia ou noite e calcula o indice de diurnalidade (Hoogenboom, 1984)
 		d.index = sapply(df.list, 
 						 function(x){
-						 	# indexa valores de atividade que acontecem durante o dia
-						 	actv.day = x$activity[x$daylight]
-						 	# indexa valores de atividade que acontecem durante a noite
-						 	actv.night = x$activity[!x$daylight]
-						 	# somatória da atividade diurna
-						 	actv.day = sum(actv.day)
-						 	# somatória da atividade noturna
-						 	actv.night = sum(actv.night)
-						 	# calculo do indice de diurnalidade (Hoogenboom, 1984)
-						 	d = (actv.day - actv.night)/(actv.day + actv.night)
-						 	return(d)
+                            # calcula o valor de atividade médio do animal
+                            actv.mean = mean(df$activity)
+                            
+                            # Checa valor da atividade conta média e retorna um vetor lógico. TRUE = com atividade.
+                            df$actv.logical = ifelse(test = df$activity >= actv.mean, yes = TRUE, no = FALSE)
+                            
+                            # indexa valores de atividade que acontecem durante o dia
+                            actv.day = df$actv.logical[df$daylight]
+                            # indexa valores de atividade que acontecem durante a noite
+                            actv.night = df$actv.logical[!df$daylight]
+                            
+                            # somatória da atividade diurna
+                            actv.day = sum(actv.day)
+                            # somatória da atividade noturna
+                            actv.night = sum(actv.night)
+                            
+                            # Calculo do Indice de Diurnalidade
+                            if (as.percentage == FALSE){
+                                # calculo do indice de diurnalidade (Hoogenboom, 1984)
+                                d.index = (actv.day - actv.night)/(actv.day + actv.night)
+                            }else{
+                                # Indice como porcentagem
+                                d.index = actv.day / (actv.day + actv.night)
+                            }
+                            return(d)
 						 })
 		d.index = data.frame(date = names(d.index), diurnality = d.index, row.names = NULL)
 	}
 	
+	
+return(d.index)
 } #FIM DIURNALITY
