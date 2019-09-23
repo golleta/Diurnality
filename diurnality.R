@@ -135,10 +135,16 @@ diurnality = function(datetime, activity, lat = NULL, lon = NULL, sunrise = NULL
 		# Calculo do Indice de Diurnalidade
 		if (as.percentage == FALSE){
 		    # calculo do indice de diurnalidade (Hoogenboom, 1984)
-		    d.index = (actv.day - actv.night)/(actv.day + actv.night)
+		    d.index = (
+		                (actv.day/sum(df$daylight) - actv.night/sum(!df$daylight))/
+		                (actv.day/sum(df$daylight) + actv.night/sum(!df$daylight))
+		    )
 		}else{
 		    # Indice como porcentagem
-		    d.index = actv.day / (actv.day + actv.night)
+		    d.index = (
+		                actv.day/sum(df$daylight) / 
+		                (actv.day/sum(df$daylight) + actv.night/sum(!df$daylight))
+		    )
 		}
 	}
 	else{
@@ -170,10 +176,16 @@ diurnality = function(datetime, activity, lat = NULL, lon = NULL, sunrise = NULL
                             # Calculo do Indice de Diurnalidade
                             if (as.percentage == FALSE){
                                 # calculo do indice de diurnalidade (Hoogenboom, 1984)
-                                d.index = (actv.day - actv.night)/(actv.day + actv.night)
+                                d = (
+                                    (actv.day/sum(df$daylight) - actv.night/sum(!df$daylight))/
+                                        (actv.day/sum(df$daylight) + actv.night/sum(!df$daylight))
+                                )
                             }else{
                                 # Indice como porcentagem
-                                d.index = actv.day / (actv.day + actv.night)
+                                d = (
+                                    actv.day/sum(df$daylight) / 
+                                        (actv.day/sum(df$daylight) + actv.night/sum(!df$daylight))
+                                )
                             }
                             return(d)
 						 })
